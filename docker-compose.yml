@@ -1,0 +1,95 @@
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: dockerfile.local
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: 4000
+      VITE_SERVER_URL: ${VITE_SERVER_URL}
+      VITE_AUDIUS_APP_NAME: ${AUDIUS_APP_NAME}
+      VITE_AUDIUS_API_KEY: ${AUDIUS_API_KEY}
+      VITE_S3_REGION: ${AWS_REGION}
+      VITE_S3_BUCKET: ${AWS_BUCKET_NAME}
+    depends_on:
+      - server
+    command: npm run dev
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  server:
+    build:
+      context: ./server
+      dockerfile: dockerfile.local
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: 3000
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NODEMAILER_USER: ${NODEMAILER_USER}
+      NODEMAILER_SECRET: ${NODEMAILER_SECRET}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_SENDER: ${MAIL_SENDER}
+      CLIENT_URL: ${CLIENT_URL}
+      JWT_ACCESS_TOKEN_SECRET: ${JWT_ACCESS_TOKEN_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION_TIME: ${JWT_ACCESS_TOKEN_EXPIRATION_TIME}
+      JWT_REFRESH_TOKEN_SECRET: ${JWT_REFRESH_TOKEN_SECRET}
+      JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${JWT_REFRESH_TOKEN_EXPIRATION_TIME}
+      JWT_PASSWORD_SECRET: ${JWT_PASSWORD_SECRET}
+      JWT_PASSWORD_EXPIRATION_TIME: ${JWT_PASSWORD_EXPIRATION_TIME}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      MODAL_PROXY_KEY: ${MODAL_PROXY_KEY}
+      MODAL_PROXY_SECRET: ${MODAL_PROXY_SECRET}
+      GENERATE_SONG_URL: ${GENERATE_SONG_URL}
+      AUDIUS_API_KEY: ${AUDIUS_API_KEY}
+      AUDIUS_API_SECRET: ${AUDIUS_API_SECRET}
+      AUDIUS_APP_NAME: ${AUDIUS_APP_NAME}
+      AUDIUS_ENVIRONMENT: ${AUDIUS_ENVIRONMENT}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      GOOGLE_STATE_TOKEN_SECRET: ${GOOGLE_STATE_TOKEN_SECRET}
+      GOOGLE_STATE_EXPIRATION_TIME: ${GOOGLE_STATE_EXPIRATION_TIME}
+      META_APP_ID: ${META_APP_ID}
+      META_APP_SECRET: ${META_APP_SECRET}
+      META_REDIRECT_URI: ${META_REDIRECT_URI}
+      META_STATE_TOKEN_SECRET: ${META_STATE_TOKEN_SECRET}
+      META_STATE_EXPIRATION_TIME: ${META_STATE_EXPIRATION_TIME}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
+
+    depends_on:
+      - db
+      - redis
+    command: npm run start:dev
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis_music_gen
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
+  db_data:
