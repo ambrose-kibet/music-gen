@@ -1,0 +1,11 @@
+pydantic
+boto3
+langchain_core
+langchain_huggingface
+langgraph
+fastapi
+uvicorn
+modal
+ffmpeg-python
+pydub
+accelerate

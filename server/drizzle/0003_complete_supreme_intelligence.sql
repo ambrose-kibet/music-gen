@@ -1,0 +1,1 @@
+ALTER TABLE "songs" ALTER COLUMN "share_to" SET DEFAULT '{}';

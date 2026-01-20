@@ -1,0 +1,1 @@
+ALTER TABLE "bots" ALTER COLUMN "requests" SET DATA TYPE text;
