@@ -595,7 +595,7 @@ class AIService:
         graph.add_node(
             "generate_song_categories_node", self.generate_song_categories_node
         )
-        graph.add_node("generate_video_ideas_node", self.generate_video_ideas_node)
+
         graph.add_node("generate_video_prompt_node", self.generate_video_prompt_node)
         graph.add_node("critique_video_prompt_node", self.critique_video_prompt_node)
         graph.add_node(
