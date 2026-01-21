@@ -613,9 +613,8 @@ GOOGLE_REDIRECT_URI==http://localhost:3000/integrations/youtube/callback
 
 **Free Quota:**
 
-- 10,000 requests per day
-- Uploading videos: 1,600 requests per day (higher limit)
-- Reading metadata: 100 requests per second
+- 10,000 credits per day
+- Uploading videos: 1,600 credits per request = 6 per day
 
 **Optimize API Usage:**
 
