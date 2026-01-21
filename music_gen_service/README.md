@@ -27,10 +27,12 @@ The Music Gen Service is a serverless microservice that handles AI music generat
 **Key Components:**
 
 - `main.py` - FastAPI endpoint for music generation requests
-- `ai_service.py` - Core AI music generation using LangChain + HuggingFace
-- `ace_step_service.py` - Multi-step AI workflow orchestration with LanGraph
-- `video_ai_service.py` - Video processing and thumbnail generation
+- `ai_service.py` - Multi-step AI workflow orchestration with LanGraph with HuggingFace models
+- `ace_step_service.py` - Core AI music generation using AceStep model
+- `video_ai_service.py` - Video generation and processing
+- `utils.py` - Helper functions for S3 uploads, file handling, etc.
 - `schemas.py` - Request/response validation with Pydantic
+- `prompts` - Prompt templates for AI models
 
 ---
 

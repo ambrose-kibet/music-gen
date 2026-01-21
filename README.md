@@ -446,7 +446,7 @@ If you like this project, please give it a star ⭐! Your support helps us impro
 
 - **How do I configure AWS S3 for file uploads?**
 
-  Set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `AWS_BUCKET_NAME` in your `.env` file. The server will generate presigned URLs for secure uploads.
+  Set `AWS_ACCESS_KEY`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `AWS_BUCKET_NAME` in your `.env` file. The server will generate presigned URLs for secure uploads.
 
 - **Can I run the music generation service locally?**
 
@@ -579,12 +579,10 @@ This appendix provides step-by-step instructions for integrating YouTube API wit
 
    **Authorized JavaScript origins:**
    - Add: `http://localhost:3000`
-   - Add: `http://localhost:4000`
    - Add: `https://yourdomain.com` (your production domain)
 
    **Authorized redirect URIs:**
    - Add: `=http://localhost:3000/integrations/youtube/callback`
-   - Add: `http://localhost:4000/integrations/youtube/callback`
    - Add: `https://yourdomain.com/integrations/youtube/callback`
 
    - Click **CREATE**
@@ -715,7 +713,7 @@ This appendix provides step-by-step instructions for integrating Facebook API wi
 
    **Valid OAuth Redirect URIs:**
    - Add: `http://localhost:3000/integrations/facebook/callback`
-   - Add: `http://localhost:4000/integrations/facebook/callback`
+
    - Add: `https://yourdomain.com/integrations/facebook/callback`
 
    - Click **Save**
