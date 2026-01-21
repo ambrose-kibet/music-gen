@@ -36,6 +36,10 @@ The Music Gen Service is a serverless microservice that handles AI music generat
 
 ---
 
+### Graph Image
+
+<img src="./graph_mermaid.png" alt="Music Gen Service Architecture" width="800"/>
+
 ## Prerequisites
 
 Before starting, ensure your system has:
