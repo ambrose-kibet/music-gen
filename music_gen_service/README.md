@@ -1,6 +1,6 @@
 # Music Gen Service - Python Serverless Music Generation
 
-> AI-powered serverless music generation service using Modal, LangChain, and HuggingFace models.
+> AI-powered serverless music generation service using Modal, LangGraph, and HuggingFace models.
 
 ## 📋 Table of Contents
 
@@ -36,7 +36,7 @@ The Music Gen Service is a serverless microservice that handles AI music generat
 
 ---
 
-### Graph Image
+### Graph Workflow Image
 
 <img src="./graph_mermaid.png" alt="Music Gen Service Architecture" width="800"/>
 
