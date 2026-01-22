@@ -289,7 +289,7 @@ You need to have the following installed:
 Clone this repository to your desired folder:
 
 ```sh
-git clone git@github.com:ambrose-kibet/music-gen.git
+git clone https://github.com/ambrose-kibet/music-gen.git
 cd music-gen
 ```
 
