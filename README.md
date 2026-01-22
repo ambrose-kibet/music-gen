@@ -385,7 +385,6 @@ npm run lint
 
 ## 🔭 Future Features <a name="future-features"></a>
 
-- [ ] **Payment Integration**: M-Pesa for credits
 - [ ] **Instagram and TikTok integration**: Direct sharing to more social platforms
 - [ ] **Optimized distribution pipeline**: Faster uploads to Audius, Youtube, Facebook
 - [ ] **Support for shorts remixes and reels**: Create short-form content
