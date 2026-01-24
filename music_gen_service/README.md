@@ -35,6 +35,43 @@ The Music Gen Service is a serverless microservice that handles AI music generat
 - `prompts` - Prompt templates for AI models
 
 ---
+## Service Architecture
+
+```
+┌─────────────────────────────────────────┐
+│         NestJS Server (Port 3000)       │
+│    Receives generation requests         │
+└────────────────┬────────────────────────┘
+                 │
+        ┌────────▼────────┐
+        │  BullMQ Queue   │
+        │    (Redis)      │
+        └────────┬────────┘
+                 │
+        ┌────────▼────────────────────┐
+        │  Modal FastAPI Endpoint     │
+        │  (main.generate_endpoint)   │
+        └────────┬────────────────────┘
+                 │
+    ┌────────────┼────────────────┐
+    │            │                │
+    ▼            ▼                ▼
+┌─────────┐ ┌──────────┐ ┌────────────────┐
+│   AI    │ │   ACE    │ │     Video      │
+│Service  │ │   Step   │ │     Service    │
+│         │ │ Service  │ │                │
+└────┬────┘ └────┬─────┘ └────────┬───────┘
+     │           │                │
+     └───────────┼────────────────┘
+                 │
+        ┌────────▼────────┐
+        │  AWS S3 Bucket  │
+        │ (Audio, Cover,  │
+        │  Videos, etc)   │
+        └─────────────────┘
+```
+
+---
 
 ### Graph Workflow Image
 
@@ -408,43 +445,7 @@ This will:
 
 ---
 
-## Service Architecture
 
-```
-┌─────────────────────────────────────────┐
-│         NestJS Server (Port 3000)       │
-│    Receives generation requests         │
-└────────────────┬────────────────────────┘
-                 │
-        ┌────────▼────────┐
-        │  BullMQ Queue   │
-        │    (Redis)      │
-        └────────┬────────┘
-                 │
-        ┌────────▼────────────────────┐
-        │  Modal FastAPI Endpoint     │
-        │  (main.generate_endpoint)   │
-        └────────┬────────────────────┘
-                 │
-    ┌────────────┼────────────────┐
-    │            │                │
-    ▼            ▼                ▼
-┌─────────┐ ┌──────────┐ ┌────────────────┐
-│   AI    │ │   ACE    │ │     Video      │
-│Service  │ │   Step   │ │     Service    │
-│         │ │ Service  │ │                │
-└────┬────┘ └────┬─────┘ └────────┬───────┘
-     │           │                │
-     └───────────┼────────────────┘
-                 │
-        ┌────────▼────────┐
-        │  AWS S3 Bucket  │
-        │ (Audio, Cover,  │
-        │  Videos, etc)   │
-        └─────────────────┘
-```
-
----
 
 ## Troubleshooting
 
