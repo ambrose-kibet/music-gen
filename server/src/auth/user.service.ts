@@ -78,7 +78,7 @@ export class UserService {
       .where(eq(schema.users.email, email))
       .limit(1);
     if (!user || user.length === 0) {
-      throw new NotFoundException(`User with email ${email} not found`);
+      return null;
     }
     return user[0];
   }
