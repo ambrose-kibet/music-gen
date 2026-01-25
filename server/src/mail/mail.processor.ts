@@ -12,6 +12,8 @@ export class EmailProcessor extends WorkerHost {
     super();
     this.transporter = createTransport({
       service: this.configService.get('MAIL_HOST'),
+      port: 587,
+      secure: false,
       auth: {
         user: this.configService.get('NODEMAILER_USER'),
         pass: this.configService.get('NODEMAILER_SECRET'),
