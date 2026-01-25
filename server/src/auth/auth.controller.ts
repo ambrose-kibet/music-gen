@@ -157,4 +157,11 @@ export class AuthController {
   async getCurrentUser(@Req() request: RequestWithUser) {
     return request.user;
   }
+
+  @Get('health')
+  @HttpCode(200)
+  async healthCheck() {
+    let time = new Date().toISOString();
+    return { status: 'OK', time };
+  }
 }
