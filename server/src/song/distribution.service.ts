@@ -29,6 +29,12 @@ export class DistributionService {
       3600,
     );
 
+    // if file storage path does not exist, create it
+    try {
+      await fsPromises.access(FILES_STORAGE_PATH);
+    } catch (err) {
+      await fsPromises.mkdir(FILES_STORAGE_PATH, { recursive: true });
+    }
     const audioDownloadPath = path.join(
       FILES_STORAGE_PATH,
       song.audioS3Key!.replace(/\//g, '_'),
