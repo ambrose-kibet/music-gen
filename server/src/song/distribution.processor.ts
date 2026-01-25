@@ -9,6 +9,8 @@ import { IntegrationService } from '../integration/integration.service';
 import { DistributionService } from './distribution.service';
 import { SongService } from './song.service';
 import { unlinkSync } from 'fs';
+import { FILES_STORAGE_PATH } from './constants';
+import { promises as fsPromises } from 'fs';
 
 @Processor(DISTRIBUTION_QUEUE, { concurrency: 1 })
 export class DistributionProcessor extends WorkerHost {
@@ -29,6 +31,13 @@ export class DistributionProcessor extends WorkerHost {
     const song = await this.songService.getSongWithVideo(songId);
     this.logger.log(`🚀 Starting distribution for song ID: ${songId}`);
     //clean up residual files from previous attempts
+    // if file storage path does not exist, create it
+    try {
+      await fsPromises.access(FILES_STORAGE_PATH);
+      this.logger.log(`${FILES_STORAGE_PATH}  path exists`);
+    } catch (err) {
+      await fsPromises.mkdir(FILES_STORAGE_PATH, { recursive: true });
+    }
     await this.distributionService.cleanupResidualFilesFromPreviousAttempts();
 
     const userIntegrations = await this.integrationService.getUserIntegrations({
