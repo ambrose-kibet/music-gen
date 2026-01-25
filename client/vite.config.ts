@@ -15,10 +15,4 @@ export default defineConfig({
     port: 4000,
     strictPort: true,
   },
-  server: {
-    port: 4000,
-    strictPort: true,
-    host: true,
-    origin: "http://0.0.0.0:4000",
-  },
 });
