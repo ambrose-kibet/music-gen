@@ -32,6 +32,7 @@ export class DistributionService {
     // if file storage path does not exist, create it
     try {
       await fsPromises.access(FILES_STORAGE_PATH);
+      console.log(`${FILES_STORAGE_PATH}  path exists`);
     } catch (err) {
       await fsPromises.mkdir(FILES_STORAGE_PATH, { recursive: true });
     }
