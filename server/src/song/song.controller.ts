@@ -27,7 +27,7 @@ import { CreateSongDto } from './Dtos/create-song.dto';
 import type { RequestWithUser } from '../utils/types';
 import { SongOwnershipGuard } from './guards/song-ownership.guard';
 import { CheckOwnership } from '../utils/guard-helpers';
-import { getPresignedUrl } from '../utils/aws-helpers';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { DistributeSongDto } from './Dtos/distribute-song.dto';
 
 @ApiTags('songs')
@@ -35,7 +35,10 @@ import { DistributeSongDto } from './Dtos/distribute-song.dto';
 @Controller('songs')
 @UseGuards(JwtAuthenticationGuard, SongOwnershipGuard)
 export class SongController {
-  constructor(private readonly songService: SongService) {}
+  constructor(
+    private readonly songService: SongService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Post()
   @ApiBody({ type: CreateSongDto })
@@ -112,7 +115,7 @@ export class SongController {
     if (!song.audioS3Key) {
       throw new BadRequestException(`Song status is ${song.status}`);
     }
-    const signedUrl = await getPresignedUrl(song.audioS3Key!);
+    const signedUrl = this.cloudinaryService.getSignedUrl(song.audioS3Key!, 'raw');
     return signedUrl;
   }
 

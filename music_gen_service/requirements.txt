@@ -1,5 +1,5 @@
 pydantic
-boto3
+cloudinary
 langchain_core
 langchain_huggingface
 langgraph

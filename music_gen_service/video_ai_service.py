@@ -7,7 +7,7 @@ from diffusers.utils import export_to_video, load_image
 import modal
 
 from schemas import GenerateSongRequest
-from utils import upload_to_s3
+from utils import upload_to_cloudinary
 
 
 image = (
@@ -116,8 +116,11 @@ class VideoAIService:
 
         export_to_video(output, f"{outdir}/{video_id}.mp4", fps=fps)
 
-        video_s3_id = upload_to_s3(
-            f"{outdir}/{video_id}.mp4", object_key=f"{video_id}.mp4"
+        video_s3_id = upload_to_cloudinary(
+            f"{outdir}/{video_id}.mp4",
+            video_id,
+            resource_type="video",
+            private=True,
         )
 
         return video_s3_id
@@ -169,8 +172,11 @@ class VideoAIService:
             .run(overwrite_output=True)
         )
 
-        video_s3_id = upload_to_s3(
-            video_one_path_30fps, object_key=f"{video_id}_30fps.mp4"
+        video_s3_id = upload_to_cloudinary(
+            video_one_path_30fps,
+            f"{video_id}_30fps",
+            resource_type="video",
+            private=True,
         )
 
         # clean up temp files
@@ -183,7 +189,7 @@ class VideoAIService:
     ) -> GenerateSongRequest:
         """Generates a video for a single song request."""
         thumbnail_s3_key = request["videos"][-1]["thumbnail_s3_key"]
-        url = f"https://{os.environ['AWS_BUCKET_NAME']}.s3.{os.environ['AWS_REGION']}.amazonaws.com/{thumbnail_s3_key}"
+        url = f"https://res.cloudinary.com/{os.environ['CLOUDINARY_CLOUD_NAME']}/image/upload/{thumbnail_s3_key}"
         aspect_ratio = 16 / 9
         fps = 6
         video_s3_key = self.generate_video_from_image(

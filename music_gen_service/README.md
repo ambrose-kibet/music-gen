@@ -16,7 +16,7 @@
 - [API Endpoints](#api-endpoints)
 - [Service Architecture](#service-architecture)
 - [Troubleshooting](#troubleshooting)
-- [Appendix: AWS Setup Guide](#appendix-aws-setup-guide)
+- [Appendix: Cloudinary Setup Guide](#appendix-cloudinary-setup-guide)
 
 ---
 
@@ -30,7 +30,7 @@ The Music Gen Service is a serverless microservice that handles AI music generat
 - `ai_service.py` - Multi-step AI workflow orchestration with LanGraph with HuggingFace models
 - `ace_step_service.py` - Core AI music generation using AceStep model
 - `video_ai_service.py` - Video generation and processing
-- `utils.py` - Helper functions for S3 uploads, file handling, etc.
+- `utils.py` - Helper functions for Cloudinary uploads, audio processing, etc.
 - `schemas.py` - Request/response validation with Pydantic
 - `prompts` - Prompt templates for AI models
 
@@ -64,11 +64,12 @@ The Music Gen Service is a serverless microservice that handles AI music generat
      │           │                │
      └───────────┼────────────────┘
                  │
-        ┌────────▼────────┐
-        │  AWS S3 Bucket  │
-        │ (Audio, Cover,  │
-        │  Videos, etc)   │
-        └─────────────────┘
+        ┌────────▼────────────┐
+        │     Cloudinary      │
+        │  (music-gen folder) │
+        │  Audio, Cover,      │
+        │  Videos, etc.       │
+        └─────────────────────┘
 ```
 
 ---
@@ -88,7 +89,7 @@ Before starting, ensure your system has:
 
 **Additional Requirements:**
 
-- AWS S3 credentials (for file uploads)
+- Cloudinary account (for file uploads)
 - Modal account (for deploying the service)
 
 ---
@@ -412,14 +413,12 @@ This will open a browser to complete authentication. Follow the prompts.
 
 ### Step 2: Set Environment Variables
 
-Follow the AWS Setup Guide in the [Appendix](#appendix-aws-setup-guide) to create an S3 bucket and IAM user. Then,add the following content to [modal secrets](https://modal.com/apps/) under the `Secrets` tab and also include the following secrets to your `.env` file in the root directory:
+Follow the Cloudinary Setup Guide in the [Appendix](#appendix-cloudinary-setup-guide) to obtain your credentials. Then add the following to [Modal secrets](https://modal.com/apps/) under the `Secrets` tab, and include them in your `.env` file in the root directory:
 
 ```bash
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_REGION=us-east-1
-AWS_BUCKET_NAME=music-gen-bucket
-
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ## Running the Service
@@ -527,482 +526,97 @@ For more information:
 
 ---
 
-## Appendix: AWS Setup Guide <a name="appendix-aws-setup-guide"></a>
+## Appendix: Cloudinary Setup Guide <a name="appendix-cloudinary-setup-guide"></a>
 
-This appendix provides step-by-step instructions for setting up AWS S3 for the Music Gen Service, including account creation, bucket setup, and IAM policy configuration.
+This appendix provides step-by-step instructions for setting up Cloudinary for the Music Gen Service.
 
-### Step 1: Sign Up for a Free AWS Account
+### Step 1: Create a Cloudinary Account
 
-#### Prerequisites
+1. Go to [https://cloudinary.com/](https://cloudinary.com/) and click **Sign Up for Free**
+2. Complete registration with your email address
+3. After verifying your email, log in to the **Cloudinary Console**
 
-- Valid email address
-- Credit/debit card (AWS Free Tier does NOT require charges, but a valid card is needed for verification)
-- Phone number for verification
-
-#### Account Creation Steps
-
-1. **Visit AWS Sign-Up Page**
-   - Go to [https://aws.amazon.com/](https://aws.amazon.com/)
-   - Click **Create an AWS Account** in the top-right corner
-
-2. **Enter Email and Create Password**
-   - Enter a valid email address
-   - Create a strong password
-   - Confirm password
-   - Click **Continue**
-
-3. **Choose Account Type**
-   - Select **Personal** (for individual use)
-   - Fill in your contact information:
-     - Full Name
-     - Phone Number
-     - Country
-     - Address
-     - City, State/Province, Postal Code
-   - Accept AWS Customer Agreement
-   - Click **Continue**
-
-4. **Billing Information**
-   - Enter valid payment method details
-   - Select **Debit or Credit Card**
-   - Fill in:
-     - Card number
-     - Expiration date
-     - CVV
-     - Name on card
-   - Click **Verify and Add**
-   - AWS will charge ~$1 USD and immediately refund it (for verification)
-
-5. **Phone Verification**
-   - Receive a verification code via SMS or phone call
-   - Enter the code when prompted
-   - Click **Verify Code**
-
-6. **Choose AWS Support Plan**
-   - Select **Basic Plan** (free)
-   - Click **Complete Sign Up**
-
-7. **Confirm Email**
-   - Check your email for AWS confirmation
-   - Click the confirmation link
-   - You're now signed up! Click **Go to AWS Console**
-
-**Free Tier Benefits:**
-
-- 5GB free S3 storage per month for 12 months
-- Free data transfer within same region
-- Full access to AWS services with usage limits
+**Free Tier includes:**
+- 25 GB managed storage
+- 25 GB monthly net viewing bandwidth
+- Sufficient for hundreds of songs, cover images, and videos
 
 ---
 
-### Step 2: Create an S3 Bucket
+### Step 2: Find Your Credentials
 
-#### Accessing S3 Console
-
-1. **Sign In to AWS Console**
-   - Go to [https://aws.amazon.com/console/](https://aws.amazon.com/console/)
-   - Enter your email and password
-
-2. **Navigate to S3**
-   - Click **Services** in the top-left
-   - Search for **S3** (Simple Storage Service)
-   - Click **S3** from the results
-
-#### Creating a Bucket
-
-1. **Click Create Bucket**
-   - In the S3 console, click the **Create bucket** button
-
-2. **Configure Bucket Details**
-
-   **Bucket name:**
-   - Must be globally unique (no other AWS account can have same name)
-   - Use lowercase letters and hyphens
-   - No underscores or periods
-   - Example: `music-gen-bucket-12345` (add your unique ID)
-   - Length: 3-63 characters
-
-   **AWS Region:**
-   - Select a region close to your users
-   - Common choices:
-     - `us-east-1` (N. Virginia) - most services
-     - `eu-west-1` (Ireland) - Europe
-     - `ap-southeast-1` (Singapore) - Asia
-   - For this guide, we'll use `us-east-1`
-
-3. **Block Public Access Settings**
-   - **IMPORTANT:** Keep all "Block Public Access" options **checked**
-   - This prevents accidental public exposure of your music files
-   - Your bucket will remain private
-
-4. **Bucket Versioning (Optional)**
-   - Leave **Versioning** disabled for now
-   - Can be enabled later if you need version history
-
-5. **Click Create Bucket**
-   - Review your settings
-   - Click **Create bucket** button
-   - You should see confirmation: "Successfully created bucket"
-
-#### Verify Bucket Creation
-
-Your new bucket should appear in the S3 buckets list:
-
-```
-Bucket name: music-gen-bucket-12345
-Region: us-east-1
-Creation date: [current date]
-```
-
-#### Configure S3 Bucket Public Access
-
-**Important:** By default, AWS blocks all public ACLs on S3 buckets for security. If your Music Gen Service needs to serve files publicly (e.g., cover art and video thumbnails), you must explicitly allow public access.
-
-#### Allow Public Access
-
-1. **Open S3 Console**
-   - Go to [https://s3.console.aws.amazon.com/](https://s3.console.aws.amazon.com/)
-   - Sign in to your AWS account
-
-2. **Select Your Bucket**
-   - Click on `music-gen-bucket-12345` (your bucket name)
-
-3. **Navigate to Permissions**
-   - Click the **Permissions** tab
-
-4. **Modify Block Public Access Settings**
-   - Scroll to **Block public access (bucket settings)**
-   - Click **Edit**
-   - Uncheck **Block all public access** (if you need public files)
-   - **⚠️ Warning:** You'll see a confirmation dialog
-
-5. **Confirm Changes**
-   - Read the warning carefully
-   - Type `confirm` in the text field
-   - Click **Confirm**
-   - Settings are now updated
-
-Your application code can set ACLs during upload:
-
-```python
-s3_client.put_object(
-     Bucket=bucket_name,
-     Key=object_key,
-     Body=file_content,
-     ACL='public-read'  # Now this will actually take effect
-)
-```
-
----
-
-### Step 3: Create an IAM User with S3 Permissions
-
-**Why IAM User?** Never use AWS root account credentials. IAM users provide granular permission control and can be disabled without affecting your main account.
-
-#### Access IAM Console
-
-1. **Navigate to IAM**
-   - Click **Services** in the top-left
-   - Search for **IAM** (Identity and Access Management)
-   - Click **IAM**
-
-2. **Create New User**
-   - In the left sidebar, click **Users**
-   - Click **Create user** button
-
-#### Configure User
-
-1. **User Details**
-   - User name: `music-gen-service` (or your preferred name)
-   - Click **Next**
-
-2. **Set Permissions**
-   - Select **Attach policies directly**
-   - Do NOT use predefined policies yet (we'll create a custom one)
-   - Click **Next**
-
-3. **Review and Create**
-   - Review settings
-   - Click **Create user**
-   - User created successfully!
-
-#### Create Custom IAM Policy
-
-1. **Create Policy**
-   - In left sidebar, click **Policies**
-   - Click **Create policy** button
-
-2. **Choose Policy Editor**
-   - Select **JSON** tab
-   - Paste the following policy (replace `music-gen-bucket-12345` with your bucket name):
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "ListBucket",
-      "Effect": "Allow",
-      "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345"
-    },
-    {
-      "Sid": "GetObjectFromBucket",
-      "Effect": "Allow",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345/*"
-    },
-    {
-      "Sid": "PutObjectToBucket",
-      "Effect": "Allow",
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345/*"
-    },
-    {
-      "Sid": "DeleteObjectFromBucket",
-      "Effect": "Allow",
-      "Action": "s3:DeleteObject",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345/*"
-    },
-    {
-      "Sid": "GetObjectACL",
-      "Effect": "Allow",
-      "Action": "s3:GetObjectAcl",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345/*"
-    },
-    {
-      "Sid": "PutObjectACL",
-      "Effect": "Allow",
-      "Action": "s3:PutObjectAcl",
-      "Resource": "arn:aws:s3:::music-gen-bucket-12345/*"
-    }
-  ]
-}
-```
-
-**Policy Breakdown:**
-
-- `ListBucket`: List files in the bucket (required for uploads)
-- `GetObject`: Download files from the bucket
-- `PutObject`: Upload files to the bucket
-- `DeleteObject`: Delete files from the bucket
-- `GetObjectAcl`: Read object permissions
-- `PutObjectAcl`: Set object permissions
-
-3. **Review Policy**
-   - Click **Next**
-   - Policy name: `music-gen-s3-access`
-   - Description: "Allow Music Gen service to read/write to S3 bucket"
-   - Click **Create policy**
-
-#### Attach Policy to User
-
-1. **Go Back to Users**
-   - Click **Users** in left sidebar
-   - Click on **music-gen-service** user
-
-2. **Add Permissions**
-   - Click **Add permissions** dropdown
-   - Select **Attach policies directly**
-
-3. **Select Policy**
-   - Search for `music-gen-s3-access`
-   - Check the checkbox next to the policy name
-   - Click **Next**
-
-4. **Review and Confirm**
-   - Review permissions
-   - Click **Attach policies**
-   - Success! Policy is now attached
-
----
-
-### Step 4: Generate Access Keys
-
-**Access Keys** consist of an Access Key ID and Secret Access Key used to authenticate API calls.
-
-#### Create Access Keys
-
-1. **Go to User**
-   - In IAM console, click **Users**
-   - Click **music-gen-service** user
-
-2. **Create Access Key**
-   - Click on **Security credentials** tab
-   - Scroll to **Access keys** section
-   - Click **Create access key**
-
-3. **Choose Use Case**
-   - Select **Application running outside AWS**
-   - Click **Next**
-
-4. **Set Description**
-   - Description: `Music Gen Service S3 Access`
-   - Click **Create access key**
-
-5. **Save Credentials**
-   - **IMPORTANT:** Copy these values immediately - they only appear once!
-   - Access Key ID: (looks like `AKIAIOSFODNN7EXAMPLE`)
-   - Secret Access Key: (looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`)
-   - Add the keys to your `.env` file:
-
-```bash
-AWS_ACCESS_KEY=your_access_key_id
-AWS_SECRET_ACCESS_KEY=your_secret_access_key
-```
-
-- Click **Done**
+1. In the Cloudinary Console, go to **Settings → API Keys** (or click the **Dashboard** icon)
+2. Note down three values:
+   - **Cloud name** — e.g. `mycloud`
+   - **API Key** — e.g. `123456789012345`
+   - **API Secret** — e.g. `abcdefghijklmnopqrstuvwxyz01`
 
 **⚠️ SECURITY WARNING:**
-
-- Never commit these keys to Git or public repositories
-- Never share these credentials
-- Treat them like passwords
-- Store in `.env` file (which is git-ignored)
-
-#### Download Credentials (Alternative)
-
-If you missed copying:
-
-1. Go back to Security credentials tab
-2. Under Access keys, you can see your Access Key ID
-3. Click **Show** to reveal the Secret Access Key (if not yet hidden)
+- Never commit the API Secret to Git
+- Store it in `.env` (which is git-ignored) and in Modal secrets
 
 ---
 
-### Step 5: Configure Music Gen Service
+### Step 3: Configure Environment Variables
 
-Now that you have AWS credentials and an S3 bucket, configure the Music Gen Service:
-
-#### Update `.env` File
-
-Create or update `.env` in the `music_gen_service` directory:
+Add the following to your `.env` file in the root directory:
 
 ```bash
-# AWS S3 Configuration
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_REGION=us-east-1
-AWS_BUCKET_NAME=music-gen-bucket-12345
-```
-
-#### Update Modal App Secrets
-
-Navigate to your Modal dashboard:[https://modal.com/apps/](https://modal.com/apps/)
-Select the `Secrets` tab.
-Click the `create new secret` button on the top right.
-Choose `Custom` .
-Name the secret `music_gen_secrets` and add the following key-value pairs:
-
-| Key                   | Value                  |
-| --------------------- | ---------------------- |
-| AWS_ACCESS_KEY_ID     | AKIAIOSFODNN7EXAMPLE   |
-| AWS_SECRET_ACCESS_KEY | wJalrXUtnFEMI/...      |
-| AWS_REGION            | us-east-1              |
-| AWS_BUCKET_NAME       | music-gen-bucket-12345 |
-
-**Replace values:**
-
-- `AKIAIOSFODNN7EXAMPLE` → Your Access Key ID
-- `wJalrXUtnFEMI/...` → Your Secret Access Key
-- `music-gen-bucket-12345` → Your bucket name
-- `us-east-1` → Your chosen region
-- Click `Save Changes` to save.
-
-### Step 6: Manage Your AWS Account
-
-#### Monitor Costs
-
-1. **Enable Billing Alerts**
-   - Go to **Billing Dashboard**
-   - Click **Billing preferences**
-   - Check "Receive Free Tier Usage Alerts"
-   - Check "Receive Billing Alerts"
-   - Set alert threshold: $5 USD
-
-2. **View Usage**
-   - Go to **AWS Billing Dashboard**
-   - See current month's charges
-   - Forecast for the month
-
-#### Best Practices
-
-- **Use IAM Users** - Never use root account credentials
-- **Enable MFA** - Multi-factor authentication on root account
-- **Rotate Keys** - Regularly delete old and create new access keys
-- **Use Bucket Policies** - Control who can access your bucket
-- **Enable Logging** - Track access to your files
-- **Set Lifecycle Rules** - Automatically delete old objects
-
-#### Lifecycle Rule Example (Auto-Delete Old Files)
-
-1. **Go to S3 Bucket**
-   - Click on your bucket name
-   - Click **Lifecycle rules** tab
-   - Click **Create lifecycle rule**
-
-2. **Configure Rule**
-   - Rule name: `delete-old-music`
-   - Scope: Apply to all objects in bucket
-   - Actions: Permanently delete previous versions after 30 days
-   - Click **Create rule**
-
----
-
-### Troubleshooting AWS Setup
-
-#### Issue: "Access Denied" when uploading to S3
-
-**Solution:**
-
-1. Verify IAM user has correct policy attached
-2. Check access keys are correct in `.env`
-3. Verify bucket name matches exactly
-4. Ensure bucket is not set to block all public uploads (should be blocked for security)
-
-#### Issue: "InvalidBucketName" error
-
-**Solution:**
-Bucket names must:
-
-- Be globally unique across all AWS accounts
-- Use only lowercase letters, numbers, and hyphens
-- Start and end with letter or number
-- Be 3-63 characters long
-
-#### Issue: Bucket already exists in different account
-
-**Solution:**
-Add a unique suffix to your bucket name:
-
-```
-music-gen-bucket-12345-abc123xyz
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ---
 
-### Free Tier Limits (As of 2026)
+### Step 4: Configure Modal App Secrets
 
-AWS Free Tier includes:
+Navigate to [https://modal.com/apps/](https://modal.com/apps/), select the **Secrets** tab, and open (or create) the secret named `music_gen_secrets`. Add the following key-value pairs:
 
-- **5 GB** S3 standard storage per month
-- **20,000** GET requests per month
-- **2,000** PUT requests per month
-- **Data transfer**: Free within same region
-- **Data transfer**: $0.09/GB when leaving region
+| Key                    | Value               |
+| ---------------------- | ------------------- |
+| CLOUDINARY_CLOUD_NAME  | your_cloud_name     |
+| CLOUDINARY_API_KEY     | your_api_key        |
+| CLOUDINARY_API_SECRET  | your_api_secret     |
 
-**Estimate:**
+Click **Save Changes**.
 
-- 100 songs at 5MB each = 500MB (within free tier)
-- 10 covers art at 1MB each = 50MB (within free tier)
-- 100 videos at 1MB each = 100MB (within free tier)
+---
+
+### How Assets Are Stored
+
+All files are uploaded to a `music-gen/` folder in your Cloudinary account:
+
+| Asset type | Resource type | Access      | Example public_id                        |
+| ---------- | ------------- | ----------- | ---------------------------------------- |
+| Cover art  | `image`       | Public      | `music-gen/550e8400-e29b`                |
+| Thumbnail  | `image`       | Public      | `music-gen/7c9e6679-7425`                |
+| Audio      | `raw`         | Authenticated | `music-gen/uuid_filtered_compressed.mp3` |
+| Video      | `video`       | Authenticated | `music-gen/uuid_30fps`                   |
+
+The NestJS server generates time-limited signed URLs for authenticated assets when needed (e.g. audio download, distribution processing).
+
+---
+
+### Troubleshooting Cloudinary Setup
+
+#### Issue: "Must supply api_key" error
+
+**Solution:** Ensure `CLOUDINARY_API_KEY` is set in the Modal secret and that the secret name is exactly `music_gen_secrets`.
+
+#### Issue: "Invalid Signature" when accessing authenticated assets
+
+**Solution:** Verify `CLOUDINARY_API_SECRET` is correct in both the server `.env` and Modal secrets. Signed URLs are time-limited (1 hour by default).
+
+#### Issue: Upload fails with "File not found"
+
+**Solution:** Confirm the local file path exists before upload. The `upload_to_cloudinary` function logs errors — check Modal function logs via `modal app logs music_gen_service`.
 
 ---
 
 ### References
 
-- [AWS Free Tier Documentation](https://aws.amazon.com/free/)
-- [S3 Getting Started](https://docs.aws.amazon.com/s3/index.html)
-- [IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
-- [S3 Access Control](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-overview.html)
-- [Boto3 S3 Documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html)
+- [Cloudinary Documentation](https://cloudinary.com/documentation)
+- [Cloudinary Python SDK](https://cloudinary.com/documentation/python_integration)
+- [Cloudinary Node.js SDK](https://cloudinary.com/documentation/node_integration)
+- [Modal Secrets](https://modal.com/docs/guide/secrets)

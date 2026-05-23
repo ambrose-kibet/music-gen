@@ -72,9 +72,7 @@ const SongPage: React.FC = () => {
       <div className="mt-4 w-full max-w-3xl grid grid-cols-1 md:grid-cols-[400px_1fr] gap-4">
         <div className="w-full h-auto flex items-center justify-center">
           <img
-            src={`https://${import.meta.env.VITE_S3_BUCKET}.s3.${
-              import.meta.env.VITE_S3_REGION
-            }.amazonaws.com/${data.coverS3Key}`}
+            src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${data.coverS3Key}`}
             alt={data.title}
             className="w-full h-auto rounded-lg shadow-lg"
           />
@@ -141,9 +139,7 @@ const SongPage: React.FC = () => {
                 </a>
               )}
               <img
-                src={`https://${import.meta.env.VITE_S3_BUCKET}.s3.${
-                  import.meta.env.VITE_S3_REGION
-                }.amazonaws.com/${video.thumbnailS3Key}`}
+                src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${video.thumbnailS3Key}`}
                 alt={data.title}
                 className="w-full h-auto rounded-lg shadow-lg"
               />

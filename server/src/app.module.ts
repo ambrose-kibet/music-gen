@@ -8,6 +8,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { SongModule } from './song/song.module';
 import { IntegrationModule } from './integration/integration.module';
 import { BotModule } from './bot/bot.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -36,6 +37,7 @@ import { APP_GUARD } from '@nestjs/core';
         },
       ],
     }),
+    CloudinaryModule,
     DbModule,
     AuthModule,
     MailModule,
