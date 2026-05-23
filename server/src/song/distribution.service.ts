@@ -1,9 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import path from 'path';
-import { getPresignedUrl, downloadFileFromS3 } from '../utils/aws-helpers';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FILES_STORAGE_PATH } from './constants';
 import { SongService } from './song.service';
-import { IntegrationService } from '../integration/integration.service';
 import { ConfigService } from '@nestjs/config';
 import { promises as fsPromises } from 'fs';
 import { cutVideo, mergeVideoToAudio } from '../utils/ffmpeg-helpers';
@@ -13,21 +12,11 @@ export class DistributionService {
   constructor(
     private readonly songService: SongService,
     private readonly configService: ConfigService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async downloadSongFiles(songId: string) {
     const song = await this.songService.getSongWithVideo(songId);
-
-    const audioPresignedUrl = await getPresignedUrl(song.audioS3Key!, 3600);
-    const videoPresignedUrl = await getPresignedUrl(
-      song.songVideos![0].videoS3Key!,
-      3600,
-    );
-
-    const videoThumbnailUrl = await getPresignedUrl(
-      song.songVideos![0].thumbnailS3Key!,
-      3600,
-    );
 
     const audioDownloadPath = path.join(
       FILES_STORAGE_PATH,
@@ -37,25 +26,25 @@ export class DistributionService {
       FILES_STORAGE_PATH,
       song.songVideos![0].videoS3Key!.replace(/\//g, '_'),
     );
-
     const videoThumbnailDownloadPath = path.join(
       FILES_STORAGE_PATH,
       song.songVideos![0].thumbnailS3Key!.replace(/\//g, '_'),
     );
 
-    // Download files
-
     await Promise.all([
-      await downloadFileFromS3({
-        signedUrl: audioPresignedUrl,
+      this.cloudinaryService.downloadFile({
+        publicId: song.audioS3Key!,
+        resourceType: 'raw',
         downloadPath: audioDownloadPath,
       }),
-      await downloadFileFromS3({
-        signedUrl: videoPresignedUrl,
+      this.cloudinaryService.downloadFile({
+        publicId: song.songVideos![0].videoS3Key!,
+        resourceType: 'video',
         downloadPath: videoDownloadPath,
       }),
-      await downloadFileFromS3({
-        signedUrl: videoThumbnailUrl,
+      this.cloudinaryService.downloadFile({
+        publicId: song.songVideos![0].thumbnailS3Key!,
+        resourceType: 'image',
         downloadPath: videoThumbnailDownloadPath,
       }),
     ]);
