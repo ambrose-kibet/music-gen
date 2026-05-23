@@ -1,7 +1,7 @@
 import os
 import modal
 from schemas import GenerateSongRequest
-from utils import apply_audio_filters, compress_audio, generate_song, upload_to_s3
+from utils import apply_audio_filters, compress_audio, generate_song, upload_to_cloudinary
 from app_instance import app
 
 
@@ -72,19 +72,17 @@ class AceStepAIService:
             str: The S3 ID of the uploaded music track.
         """
         verified_lyrics = lyrics if lyrics is not None else ""
-        s3bucket = os.environ.get(
-            "AWS_BUCKET_NAME",
-        )
-        print(f"Using S3 bucket: {s3bucket}")
-
         song_path = generate_song(
             self.music_model, prompt=prompt, lyrics=verified_lyrics, duration=duration
         )
 
         filtered_song_path = apply_audio_filters(song_path)
         compressed_song_path = compress_audio(filtered_song_path)
-        s3_id = upload_to_s3(
-            compressed_song_path, object_key=os.path.basename(compressed_song_path)
+        s3_id = upload_to_cloudinary(
+            compressed_song_path,
+            os.path.basename(compressed_song_path),
+            resource_type="raw",
+            private=True,
         )
 
         return s3_id

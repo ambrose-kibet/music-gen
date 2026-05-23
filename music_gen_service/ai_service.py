@@ -2,7 +2,7 @@ import modal
 import os
 import uuid
 from app_instance import app
-from utils import upload_to_s3
+from utils import upload_to_cloudinary
 from langgraph.graph import StateGraph, START, END
 import json
 import random
@@ -110,7 +110,7 @@ class AIService:
             prompt=prompt, num_inference_steps=2, guidance_scale=0.0
         ).images[0]
         image.save(image_output_path)
-        image_s3_id = upload_to_s3(image_output_path, object_key=f"{image_id}.png")
+        image_s3_id = upload_to_cloudinary(image_output_path, image_id, resource_type="image")
         return image_s3_id
 
     def prompt_llm(self, messages: list[dict]) -> str:

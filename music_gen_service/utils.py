@@ -2,7 +2,10 @@ import os
 import uuid
 import ffmpeg
 from pydub import AudioSegment
-import boto3
+import cloudinary
+import cloudinary.uploader
+
+CLOUDINARY_FOLDER = "music-gen"
 
 
 def generate_song(music_model, prompt: str, lyrics: str, duration: int = 160) -> str:
@@ -82,31 +85,42 @@ def compress_audio(input_path: str) -> str:
     return output_path
 
 
-def upload_to_s3(file_path: str, object_key: str) -> str | None:
+def upload_to_cloudinary(
+    file_path: str,
+    public_id: str,
+    resource_type: str = "image",
+    private: bool = False,
+) -> str | None:
     """
-    Upload a file to an S3 bucket with optional privacy settings.
+    Upload a file to Cloudinary.
     Args:
         file_path (str): The local file path to upload.
-        object_key (str): The S3 object key (file name in the bucket).
+        public_id (str): The Cloudinary public ID for the asset.
+        resource_type (str): "image", "raw", or "video".
+        private (bool): If True, upload as authenticated (access-controlled).
     Returns:
-        str: The S3 file id of the uploaded file.
+        str: The Cloudinary public_id of the uploaded file (includes folder prefix).
     """
-    s3_client = boto3.client("s3")
-    bucket_name = os.environ.get("AWS_BUCKET_NAME")
-    if not bucket_name:
-        print("AWS_BUCKET_NAME is not set; cannot upload to S3")
-        return None
-
-    extra_args = {}
-
-    # if image file, set to public-read
-    if object_key.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
-        extra_args["ACL"] = "public-read"
+    cloudinary.config(
+        cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.environ.get("CLOUDINARY_API_KEY"),
+        api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+        secure=True,
+    )
+    params = {
+        "public_id": public_id,
+        "folder": CLOUDINARY_FOLDER,
+        "resource_type": resource_type,
+        "overwrite": True,
+    }
+    if private:
+        params["type"] = "authenticated"
 
     try:
-        s3_client.upload_file(file_path, bucket_name, object_key, ExtraArgs=extra_args)
-        os.remove(file_path)  # Clean up local file after upload
-        return object_key
+        result = cloudinary.uploader.upload(file_path, **params)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return result["public_id"]
     except Exception as e:
-        print(f"Error uploading file to S3: {e}")
+        print(f"Error uploading file to Cloudinary: {e}")
         return None
