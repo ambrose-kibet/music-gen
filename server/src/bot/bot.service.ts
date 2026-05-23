@@ -144,7 +144,7 @@ export class BotService {
   }
 
   //runs once at 7:00 AM every day
-  @Cron('00 7 * * *')
+  @Cron('30 5 * * *')
   async queueActiveBots() {
     const bots = await this.getActiveBotsForRequest();
     for (const bot of bots) {
@@ -156,3 +156,4 @@ export class BotService {
     }
   }
 }
+
